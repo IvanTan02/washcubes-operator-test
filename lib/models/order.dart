@@ -115,7 +115,7 @@ class OrderItem {
   final String name;
   final String unit;
   final double price;
-  final int quantity;
+  late final int quantity;
   final double cumPrice;
 
   OrderItem(
@@ -269,8 +269,11 @@ class OrderStage {
     if (inProgress.verified.status && inProgress.processing.status) {
       return 'Processing';
     }
-    if (inProgress.verified.status && orderError.status) {
+    if (inProgress.verified.status && orderError.status && !orderError.isRejected) {
       return 'Order Error';
+    }
+    if (orderError.isRejected) {
+      return 'Pending Return';
     }
     if (inProgress.verified.status && orderErrorReturned.status) {
       return 'Returned';
@@ -282,10 +285,14 @@ class OrderStage {
 class OrderStatus {
   bool status;
   DateTime? dateUpdated;
+  List<String> proofPicUrl;
+  bool isRejected;
 
   OrderStatus({
     required this.status,
     this.dateUpdated,
+    required this.proofPicUrl,
+    required this.isRejected
   });
 
   factory OrderStatus.fromJson(Map<String, dynamic> json) {
@@ -294,6 +301,8 @@ class OrderStatus {
       dateUpdated: json['dateUpdated'] != null
           ? DateTime.parse(json['dateUpdated'])
           : null,
+      proofPicUrl: List<String>.from(json['proofPicUrl'] ?? []),
+      isRejected: json['isRejected'] ?? false
     );
   }
 
@@ -301,6 +310,8 @@ class OrderStatus {
     return {
       'status': status,
       'dateUpdated': dateUpdated?.toIso8601String(),
+      'proofPicUrls': proofPicUrl,
+      'isRejected': status
     };
   }
 }

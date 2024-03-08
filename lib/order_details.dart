@@ -1,6 +1,8 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:washcubes_operator_test/confirm_return.dart';
+import 'package:washcubes_operator_test/error.dart';
 import './models/order.dart';
 import './approve_order_details.dart';
 import './confirm_processing_completion.dart';
@@ -42,6 +44,15 @@ class OrderDetailsState extends State<OrderDetails> {
           serviceName: widget.serviceName,
         );
       case 'Order Error':
+        return OrderError(
+          order: widget.order,
+          serviceName: widget.serviceName,
+        );
+      case 'Pending Return':
+        return returnConfirmation(
+          order: widget.order,
+          serviceName: widget.serviceName,
+        );
       case 'Order Error Returned':
       default:
         return CircularProgressIndicator();
