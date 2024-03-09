@@ -63,7 +63,6 @@ class OperatorPageState extends State<OperatorPage> {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        print(data);
         if (data.containsKey('service')) {
           final dynamic serviceData = data['service'];
           final Service service = Service.fromJson(serviceData);
