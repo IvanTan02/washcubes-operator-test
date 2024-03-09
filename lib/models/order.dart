@@ -268,20 +268,20 @@ class OrderStage {
   }
 
   String getInProgressStatus() {
-    if (processingComplete.status || orderError.verified) {
+    if (processingComplete.status) {
       return 'Ready';
     }
-    if (inProgress.verified.status == false) {
+    if (orderError.status && orderError.userRejected) {
+      return 'Pending Return Approval';
+    }
+    if (orderError.status) {
+      return 'Order Error';
+    }
+    if (!inProgress.verified.status) {
       return 'Pending Verification';
     }
     if (inProgress.verified.status && inProgress.processing.status) {
       return 'Processing';
-    }
-    if (orderError.status && !orderError.isRejected) {
-      return 'Order Error';
-    }
-    if (orderError.isRejected) {
-      return 'Pending Return Approval';
     }
     return 'Unusual Status';
   }
@@ -341,15 +341,13 @@ class OrderErrorStatus {
   bool status;
   DateTime? dateUpdated;
   List<String> proofPicUrl;
-  bool isRejected;
-  bool verified;
+  bool userRejected;
 
   OrderErrorStatus({
     required this.status,
     this.dateUpdated,
     required this.proofPicUrl,
-    required this.isRejected,
-    required this.verified
+    required this.userRejected,
   });
 
   factory OrderErrorStatus.fromJson(Map<String, dynamic> json) {
@@ -359,8 +357,7 @@ class OrderErrorStatus {
             ? DateTime.parse(json['dateUpdated'])
             : null,
         proofPicUrl: List<String>.from(json['proofPicUrl'] ?? []),
-        isRejected: json['isRejected'] ?? false,
-        verified: json['verified'] ?? false
+        userRejected: json['userRejected'] ?? false,
     );
   }
 
@@ -369,8 +366,7 @@ class OrderErrorStatus {
       'status': status,
       'dateUpdated': dateUpdated?.toIso8601String(),
       'proofPicUrls': proofPicUrl,
-      'isRejected': isRejected,
-      'verified': verified
+      'userejected': userRejected,
     };
   }
 }

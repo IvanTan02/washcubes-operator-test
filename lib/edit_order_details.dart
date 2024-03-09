@@ -1,11 +1,14 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, use_build_context_synchronously
 
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import './models/order.dart';
 import './models/service.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import './config.dart';
+import 'package:file_picker/file_picker.dart';
 
 class EditOrderDetails extends StatefulWidget {
   final Order? order;
@@ -26,6 +29,9 @@ class EditOrderDetailsState extends State<EditOrderDetails> {
   Service? service;
   ServiceItem? selectedItem;
   List<OrderItem> orderItems = [];
+  List<Uint8List> fileBytesList = [];
+  List<String> fileNamesList = [];
+  List<String> imagesUrl = [];
 
   @override
   void initState() {
@@ -63,6 +69,7 @@ class EditOrderDetailsState extends State<EditOrderDetails> {
         final Map<String, dynamic> data = {
           'orderId': widget.order?.id,
           'orderItems': orderItems.map((item) => item.toJson()).toList(),
+          'proofPicUrl': jsonEncode(imagesUrl)
         };
         final response = await http.patch(
           Uri.parse('${url}orders/operator/edit-order-details'),
@@ -119,6 +126,53 @@ class EditOrderDetailsState extends State<EditOrderDetails> {
       estimatedPrice = (selectedItem?.price ?? 0) * quantity;
     }
     return estimatedPrice;
+  }
+
+  selectImage() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowMultiple: true,
+      allowedExtensions: ['jpg', 'jpeg', 'png'],
+    );
+    if (result != null) {
+      for (var pickedFile in result.files) {
+        Uint8List? fileBytes = pickedFile.bytes;
+        var fileName = pickedFile.name;
+        if (fileBytes != null) {
+          fileBytesList.add(fileBytes);
+          setState(() {
+            fileNamesList.add(fileName);
+          });
+        }
+      }
+    }
+  }
+
+  Future<void> uploadImage() async {
+    for (int index = 0; index < fileBytesList.length; index++) {
+      try {
+        final url = Uri.parse('https://api.cloudinary.com/v1_1/ddweldfmx/upload');
+        final request = http.MultipartRequest('POST', url)
+          ..fields['upload_preset'] = 'xcbbr3ok'
+          ..files.add(
+            http.MultipartFile.fromBytes(
+              'file',
+              fileBytesList[index],
+              filename: fileNamesList[index],
+            ),
+          );
+        final response = await request.send();
+        if (response.statusCode == 200) {
+          final responseData = await response.stream.toBytes();
+          final responseString = utf8.decode(responseData);
+          final jsonMap = jsonDecode(responseString);
+          final url = jsonMap['url'];
+          imagesUrl.add(url);
+        }
+      } catch (error) {
+        print('Error uploading image: $error');
+      }
+    }
   }
 
   @override
@@ -204,20 +258,42 @@ class EditOrderDetailsState extends State<EditOrderDetails> {
                       },
                       child: Text('Cancel')),
                   ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
+                      onPressed: () async {
+                        await selectImage();
                       },
                       child: Text('Upload Proof')),
                   ElevatedButton(
                       onPressed: () async {
+                        await uploadImage();
                         await editOrderDetails();
                       },
-                      child: Text('Update Order')),
+                      child: Text('Update Order')
+                    ),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 20.0),
+          if (fileNamesList.isNotEmpty) 
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Divider(),
+                Text(
+                  'Selected Image Files:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: fileNamesList
+                      .map(
+                        (fileName) => Text(fileName),
+                      )
+                      .toList(),
+                ),
+                const Divider(),
+              ],
+            ),
           SizedBox(
             height: 300,
             width: 800,
@@ -390,7 +466,7 @@ class EditOrderDetailsState extends State<EditOrderDetails> {
                 }
               },
             ),
-          )
+          ),
         ],
       ),
       actions: <Widget>[

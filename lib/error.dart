@@ -207,11 +207,11 @@ class _ImageDisplayDialogState extends State<ImageDisplayDialog> {
                 alignment: Alignment.center,
                 children: [
                   SizedBox(
-                    height: 650,
+                    height: 600,
                     width: 500,
                     child: Image.network(
                       widget.imageUrls![currentIndex],
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
                     ),
                   ),
                   Row(

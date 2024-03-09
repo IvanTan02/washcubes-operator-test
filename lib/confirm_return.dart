@@ -6,11 +6,11 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import './config.dart';
 
-class returnConfirmation extends StatefulWidget {
+class ReturnConfirmation extends StatefulWidget {
   final Order? order;
   final String serviceName;
 
-  const returnConfirmation({
+  const ReturnConfirmation({
     super.key,
     required this.order,
     required this.serviceName,
@@ -20,59 +20,59 @@ class returnConfirmation extends StatefulWidget {
   ReturnConfirmationState createState() => ReturnConfirmationState();
 }
 
-class ReturnConfirmationState extends State<returnConfirmation> {
+class ReturnConfirmationState extends State<ReturnConfirmation> {
   @override
   void initState() {
     super.initState();
   }
 
   Future<void> confirmReturn() async {
-    // try {
-    //   final Map<String, dynamic> data = {'orderId': widget.order?.id};
-    //   final response = await http.post(
-    //     Uri.parse('${url}orders/operator/confirm-processing-complete'),
-    //     body: json.encode(data),
-    //     headers: {'Content-Type': 'application/json'},
-    //   );
-    //   if (response.statusCode == 200) {
-    //     Navigator.pop(context);
-    //     showDialog(
-    //       context: context,
-    //       builder: (BuildContext context) {
-    //         return AlertDialog(
-    //           title: Text(
-    //             'Return Complete',
-    //             textAlign: TextAlign.center,
-    //           ),
-    //           content: Text(
-    //             'The order status for Order ${widget.order?.orderNumber} has been set to Processing Complete.',
-    //             textAlign: TextAlign.center,
-    //             // style: CTextTheme.blackTextTheme.headlineSmall,
-    //           ),
-    //           actions: <Widget>[
-    //             Row(
-    //               children: [
-    //                 Expanded(
-    //                   child: ElevatedButton(
-    //                     onPressed: () {
-    //                       Navigator.pop(context);
-    //                     },
-    //                     child: Text(
-    //                       'Nice!',
-    //                       //style: CTextTheme.blackTextTheme.headlineSmall,
-    //                     ),
-    //                   ),
-    //                 ),
-    //               ],
-    //             ),
-    //           ],
-    //         );
-    //       },
-    //     );
-    //   }
-    // } catch (error) {
-    //   print('Error approve order details: $error');
-    // }
+    try {
+      final Map<String, dynamic> data = {'orderId': widget.order?.id};
+      final response = await http.post(
+        Uri.parse('${url}orders/operator/confirm-processing-complete'),
+        body: json.encode(data),
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        Navigator.pop(context);
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(
+                'Return Complete',
+                textAlign: TextAlign.center,
+              ),
+              content: Text(
+                'The order status for Order ${widget.order?.orderNumber} has been set to Processing Complete.',
+                textAlign: TextAlign.center,
+                // style: CTextTheme.blackTextTheme.headlineSmall,
+              ),
+              actions: <Widget>[
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          'Nice!',
+                          //style: CTextTheme.blackTextTheme.headlineSmall,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (error) {
+      print('Error approve order details: $error');
+    }
   }
 
   @override
@@ -165,7 +165,7 @@ class ReturnConfirmationState extends State<returnConfirmation> {
           ),
           const SizedBox(height: 20.0),
           orderItems != null
-              ? Container(
+              ? SizedBox(
                   height: 300,
                   width: 800,
                   child: ListView.builder(

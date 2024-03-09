@@ -48,12 +48,11 @@ class OrderDetailsState extends State<OrderDetails> {
           order: widget.order,
           serviceName: widget.serviceName,
         );
-      case 'Pending Return':
-        return returnConfirmation(
+      case 'Pending Return Approval':
+        return ReturnConfirmation(
           order: widget.order,
           serviceName: widget.serviceName,
         );
-      case 'Order Error Returned':
       default:
         return CircularProgressIndicator();
     }
