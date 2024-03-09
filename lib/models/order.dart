@@ -157,8 +157,7 @@ class OrderStage {
   OrderStatus outForDelivery;
   OrderStatus readyForCollection;
   OrderStatus completed;
-  OrderStatus orderError;
-  OrderStatus orderErrorReturned;
+  OrderErrorStatus orderError;
 
   OrderStage({
     required this.dropOff,
@@ -169,7 +168,6 @@ class OrderStage {
     required this.readyForCollection,
     required this.completed,
     required this.orderError,
-    required this.orderErrorReturned,
   });
 
   factory OrderStage.fromJson(Map<String, dynamic> json) {
@@ -181,8 +179,7 @@ class OrderStage {
       outForDelivery: OrderStatus.fromJson(json['outForDelivery']),
       readyForCollection: OrderStatus.fromJson(json['readyForCollection']),
       completed: OrderStatus.fromJson(json['completed']),
-      orderError: OrderStatus.fromJson(json['orderError']),
-      orderErrorReturned: OrderStatus.fromJson(json['orderErrorReturned']),
+      orderError: OrderErrorStatus.fromJson(json['orderError']),
     );
   }
 
@@ -215,8 +212,8 @@ class OrderStage {
         return readyForCollection;
       case 'completed':
         return completed;
-      case 'orderError':
-        return orderError;
+      // case 'orderError':
+      //   return orderError;
 
       default:
         throw ArgumentError('Invalid status key: $key');
@@ -271,14 +268,8 @@ class OrderStage {
   }
 
   String getInProgressStatus() {
-    if (processingComplete.status) {
+    if (processingComplete.status || orderError.verified) {
       return 'Ready';
-    }
-    if (orderError.status) {
-      return 'Order Error';
-    }
-    if (orderErrorReturned.status) {
-      return 'Returned';
     }
     if (inProgress.verified.status == false) {
       return 'Pending Verification';
@@ -286,14 +277,11 @@ class OrderStage {
     if (inProgress.verified.status && inProgress.processing.status) {
       return 'Processing';
     }
-    if (inProgress.verified.status && orderError.status && !orderError.isRejected) {
+    if (orderError.status && !orderError.isRejected) {
       return 'Order Error';
     }
     if (orderError.isRejected) {
-      return 'Pending Return';
-    }
-    if (inProgress.verified.status && orderErrorReturned.status) {
-      return 'Returned';
+      return 'Pending Return Approval';
     }
     return 'Unusual Status';
   }
@@ -302,14 +290,10 @@ class OrderStage {
 class OrderStatus {
   bool status;
   DateTime? dateUpdated;
-  List<String> proofPicUrl;
-  bool isRejected;
 
   OrderStatus({
     required this.status,
     this.dateUpdated,
-    required this.proofPicUrl,
-    required this.isRejected
   });
 
   factory OrderStatus.fromJson(Map<String, dynamic> json) {
@@ -318,8 +302,6 @@ class OrderStatus {
       dateUpdated: json['dateUpdated'] != null
           ? DateTime.parse(json['dateUpdated'])
           : null,
-      proofPicUrl: List<String>.from(json['proofPicUrl'] ?? []),
-      isRejected: json['isRejected'] ?? false
     );
   }
 
@@ -327,8 +309,6 @@ class OrderStatus {
     return {
       'status': status,
       'dateUpdated': dateUpdated?.toIso8601String(),
-      'proofPicUrls': proofPicUrl,
-      'isRejected': status
     };
   }
 }
@@ -354,5 +334,43 @@ class OrderInProgressStatus {
             : null,
         verified: OrderStatus.fromJson(json['verified'] ?? {}),
         processing: OrderStatus.fromJson(json['processing'] ?? {}));
+  }
+}
+
+class OrderErrorStatus {
+  bool status;
+  DateTime? dateUpdated;
+  List<String> proofPicUrl;
+  bool isRejected;
+  bool verified;
+
+  OrderErrorStatus({
+    required this.status,
+    this.dateUpdated,
+    required this.proofPicUrl,
+    required this.isRejected,
+    required this.verified
+  });
+
+  factory OrderErrorStatus.fromJson(Map<String, dynamic> json) {
+    return OrderErrorStatus(
+        status: json['status'] ?? false,
+        dateUpdated: json['dateUpdated'] != null
+            ? DateTime.parse(json['dateUpdated'])
+            : null,
+        proofPicUrl: List<String>.from(json['proofPicUrl'] ?? []),
+        isRejected: json['isRejected'] ?? false,
+        verified: json['verified'] ?? false
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'status': status,
+      'dateUpdated': dateUpdated?.toIso8601String(),
+      'proofPicUrls': proofPicUrl,
+      'isRejected': isRejected,
+      'verified': verified
+    };
   }
 }
