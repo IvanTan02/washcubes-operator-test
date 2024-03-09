@@ -5,6 +5,7 @@ import './models/order.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import './config.dart';
+import './edit_order_details.dart';
 
 class ApproveOrderDetails extends StatefulWidget {
   final Order? order;
@@ -70,6 +71,16 @@ class ApproveOrderDetailsState extends State<ApproveOrderDetails> {
         print('Error approve order details: $error');
       }
     }
+  }
+
+  void showEditOrderDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return EditOrderDetails(
+            order: widget.order, serviceName: widget.serviceName);
+      },
+    );
   }
 
   @override
@@ -150,7 +161,8 @@ class ApproveOrderDetailsState extends State<ApproveOrderDetails> {
               const SizedBox(width: 100.0),
               Row(
                 children: [
-                  ElevatedButton(onPressed: () {}, child: Text('Edit')),
+                  ElevatedButton(
+                      onPressed: showEditOrderDialog, child: Text('Edit')),
                   ElevatedButton(
                       onPressed: () async {
                         await approveOrderDetails();

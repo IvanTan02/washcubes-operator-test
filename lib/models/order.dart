@@ -136,6 +136,17 @@ class OrderItem {
       cumPrice: json['cumPrice'].toDouble() ?? 0.0,
     ));
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'unit': unit,
+      'price': price,
+      'quantity': quantity,
+      'cumPrice': cumPrice,
+    };
+  }
 }
 
 class OrderStage {
@@ -262,6 +273,12 @@ class OrderStage {
   String getInProgressStatus() {
     if (processingComplete.status) {
       return 'Ready';
+    }
+    if (orderError.status) {
+      return 'Order Error';
+    }
+    if (orderErrorReturned.status) {
+      return 'Returned';
     }
     if (inProgress.verified.status == false) {
       return 'Pending Verification';
