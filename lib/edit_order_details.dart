@@ -36,8 +36,9 @@ class EditOrderDetailsState extends State<EditOrderDetails> {
   @override
   void initState() {
     super.initState();
-    getServiceDetails();
     orderItems = widget.order?.orderItems ?? [];
+    getServiceDetails();
+    getFinalPrice();
   }
 
   Future<void> getServiceDetails() async {
@@ -56,6 +57,12 @@ class EditOrderDetailsState extends State<EditOrderDetails> {
           setState(() {
             service = fetchedService;
           });
+
+          for (var orderItem in widget.order!.orderItems) {
+            ServiceItem item = service!.items
+                .firstWhere((item) => item.name == orderItem.name);
+            updatedOrderItems[item.id] = orderItem.quantity;
+          }
         }
       }
     } catch (error) {
@@ -66,9 +73,11 @@ class EditOrderDetailsState extends State<EditOrderDetails> {
   Future<void> editOrderDetails() async {
     if (widget.order != null) {
       try {
+        double finalPrice = getFinalPrice();
         final Map<String, dynamic> data = {
           'orderId': widget.order?.id,
           'orderItems': orderItems.map((item) => item.toJson()).toList(),
+          'finalPrice': finalPrice,
           'proofPicUrl': jsonEncode(imagesUrl)
         };
         final response = await http.patch(
@@ -88,7 +97,7 @@ class EditOrderDetailsState extends State<EditOrderDetails> {
                   textAlign: TextAlign.center,
                 ),
                 content: Text(
-                  'The user has been notified of the order error.',
+                  'The final order price is RM$finalPrice. The user has been notified of the order error.',
                   textAlign: TextAlign.center,
                   // style: CTextTheme.blackTextTheme.headlineSmall,
                 ),
@@ -128,6 +137,26 @@ class EditOrderDetailsState extends State<EditOrderDetails> {
     return estimatedPrice;
   }
 
+  double getFinalPrice() {
+    double finalPrice = 0.0;
+    if (service != null) {
+      updatedOrderItems.forEach((itemId, quantity) {
+        ServiceItem? item;
+        for (var serviceItem in service!.items) {
+          if (serviceItem.id == itemId) {
+            item = serviceItem;
+            break;
+          }
+        }
+
+        if (item != null) {
+          finalPrice += item.price * quantity;
+        }
+      });
+    }
+    return finalPrice;
+  }
+
   selectImage() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -151,7 +180,8 @@ class EditOrderDetailsState extends State<EditOrderDetails> {
   Future<void> uploadImage() async {
     for (int index = 0; index < fileBytesList.length; index++) {
       try {
-        final url = Uri.parse('https://api.cloudinary.com/v1_1/ddweldfmx/upload');
+        final url =
+            Uri.parse('https://api.cloudinary.com/v1_1/ddweldfmx/upload');
         final request = http.MultipartRequest('POST', url)
           ..fields['upload_preset'] = 'xcbbr3ok'
           ..files.add(
@@ -267,14 +297,13 @@ class EditOrderDetailsState extends State<EditOrderDetails> {
                         await uploadImage();
                         await editOrderDetails();
                       },
-                      child: Text('Update Order')
-                    ),
+                      child: Text('Update Order')),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 20.0),
-          if (fileNamesList.isNotEmpty) 
+          if (fileNamesList.isNotEmpty)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
